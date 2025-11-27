@@ -38,10 +38,7 @@ export default function LoginPage() {
     
     const success = await login({ email, password });
     if (success) {
-      // Short delay to show success message before navigating
-      setTimeout(() => {
-        navigate(from, { replace: true });
-      }, 500);
+      navigate(from, { replace: true });
     }
   };
 
