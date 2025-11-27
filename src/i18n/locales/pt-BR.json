@@ -1,0 +1,113 @@
+{
+  "common": {
+    "appName": "Boa Bola TV",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "all": "Todos",
+    "none": "Nenhum"
+  },
+  "auth": {
+    "login": "Entrar",
+    "logout": "Sair",
+    "email": "E-mail",
+    "password": "Senha",
+    "forgotPassword": "Esqueceu a senha?",
+    "loginSuccess": "Login realizado com sucesso!",
+    "loginError": "E-mail ou senha inválidos",
+    "unauthorized": "Acesso não autorizado"
+  },
+  "navigation": {
+    "home": "Início",
+    "videos": "Vídeos",
+    "live": "Ao Vivo",
+    "stats": "Estatísticas",
+    "subscribers": "Área de Assinantes",
+    "admin": "Administração"
+  },
+  "videos": {
+    "title": "Biblioteca de Vídeos",
+    "searchPlaceholder": "Buscar vídeos...",
+    "categories": {
+      "all": "Todas as Categorias",
+      "match-highlights": "Melhores Momentos",
+      "analysis": "Análises",
+      "interviews": "Entrevistas",
+      "tutorials": "Tutoriais",
+      "live": "Ao Vivo",
+      "podcast": "Podcast",
+      "news": "Notícias"
+    },
+    "noResults": "Nenhum vídeo encontrado",
+    "watchNow": "Assistir agora",
+    "views": "visualizações"
+  },
+  "live": {
+    "title": "Transmissão ao Vivo",
+    "noLive": "Nenhuma transmissão ao vivo no momento",
+    "upcoming": "Próximas transmissões",
+    "watchLive": "Assistir ao vivo"
+  },
+  "stats": {
+    "title": "Estatísticas de Partidas",
+    "newMatch": "Nova Partida",
+    "liveMatches": "Partidas ao Vivo",
+    "matchHistory": "Histórico de Partidas",
+    "h2h": "Confronto Direto",
+    "player1": "Jogador 1",
+    "player2": "Jogador 2",
+    "selectPlayer": "Selecionar jogador",
+    "startMatch": "Iniciar Partida",
+    "endMatch": "Finalizar Partida",
+    "addPoint": "Adicionar Ponto",
+    "aces": "Aces",
+    "doubleFaults": "Duplas Faltas",
+    "firstServe": "1º Serviço",
+    "secondServe": "2º Serviço",
+    "breakPoints": "Break Points",
+    "winners": "Winners",
+    "errors": "Erros",
+    "forehand": "Forehand",
+    "backhand": "Backhand",
+    "serve": "Saque",
+    "volley": "Voleio",
+    "pointTypes": {
+      "ace": "Ace",
+      "double-fault": "Dupla Falta",
+      "forehand-winner": "Winner de Forehand",
+      "backhand-winner": "Winner de Backhand",
+      "forehand-unforced-error": "Erro não forçado de Forehand",
+      "backhand-unforced-error": "Erro não forçado de Backhand",
+      "serve-unforced-error": "Erro não forçado de Saque",
+      "volley-winner": "Winner de Voleio",
+      "volley-error": "Erro de Voleio",
+      "overhead-winner": "Winner de Smash",
+      "overhead-error": "Erro de Smash",
+      "drop-shot-winner": "Winner de Drop Shot",
+      "drop-shot-error": "Erro de Drop Shot",
+      "lob-winner": "Winner de Lob",
+      "lob-error": "Erro de Lob",
+      "net-point": "Ponto na Rede"
+    }
+  },
+  "subscribers": {
+    "title": "Área do Assinante",
+    "welcome": "Bem-vindo à área exclusiva de assinantes!",
+    "dashboard": "Dashboard",
+    "advancedStats": "Estatísticas Avançadas",
+    "exclusiveContent": "Conteúdo Exclusivo",
+    "results": "Resultados"
+  },
+  "admin": {
+    "title": "Administração",
+    "users": "Usuários",
+    "videos": "Vídeos",
+    "settings": "Configurações"
+  }
+}
