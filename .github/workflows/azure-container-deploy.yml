@@ -1,0 +1,376 @@
+name: Build and Deploy to Azure Web App for Containers
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      skip_swap:
+        description: 'Skip auto-swap to production (manual swap later)'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  ACR_NAME: ${{ vars.ACR_NAME }}
+  IMAGE_NAME: ${{ vars.IMAGE_NAME || 'boabolatv' }}
+  WEBAPP_NAME: ${{ vars.WEBAPP_NAME || 'boabolatv' }}
+  RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}
+  SLOT_NAME: 'boabolatv-staging'
+  NODE_VERSION: '22'
+
+jobs:
+  # ============================================
+  # BUILD JOB
+  # ============================================
+  build:
+    name: Build, Test & Push Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+      image_digest: ${{ steps.docker_build.outputs.digest }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run security audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm run test:run
+
+      - name: Build application
+        run: npm run build
+
+      - name: Generate Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to Azure Container Registry
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+
+      - name: Output image info
+        run: |
+          echo "### Docker Image Built Successfully! :whale:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Tags:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "**Digest:** \`${{ steps.docker_build.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # DEPLOY JOB
+  # ============================================
+  deploy:
+    name: Deploy to Staging Slot
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    permissions:
+      contents: read
+    environment:
+      name: staging
+      url: https://${{ env.WEBAPP_NAME }}-${{ env.SLOT_NAME }}.azurewebsites.net
+
+    outputs:
+      smoke_test_passed: ${{ steps.smoke_test.outputs.passed }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get current production image (for rollback)
+        id: current_prod
+        run: |
+          CURRENT_IMAGE=$(az webapp config container show \
+            --name ${{ env.WEBAPP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "[?name=='DOCKER_CUSTOM_IMAGE_NAME'].value" -o tsv 2>/dev/null || echo "")
+          echo "image=$CURRENT_IMAGE" >> $GITHUB_OUTPUT
+          echo "Current production image: $CURRENT_IMAGE"
+
+      - name: Deploy to staging slot
+        run: |
+          az webapp config container set \
+            --name ${{ env.WEBAPP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --slot ${{ env.SLOT_NAME }} \
+            --container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image_tag }} \
+            --container-registry-url https://${{ env.ACR_NAME }}.azurecr.io
+
+      - name: Wait for deployment to stabilize
+        run: |
+          echo "Waiting for deployment to stabilize..."
+          sleep 60
+
+      - name: Run smoke tests
+        id: smoke_test
+        run: |
+          STAGING_URL="https://${{ env.WEBAPP_NAME }}-${{ env.SLOT_NAME }}.azurewebsites.net"
+          MAX_RETRIES=5
+          RETRY_DELAY=15
+          PASSED=false
+          
+          echo "Running smoke tests against: $STAGING_URL"
+          
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i of $MAX_RETRIES..."
+            
+            # Test 1: Check if the app is responding
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$STAGING_URL" --max-time 30 || echo "000")
+            echo "HTTP Status: $HTTP_STATUS"
+            
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Main page is accessible"
+              
+              # Test 2: Check health endpoint
+              HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$STAGING_URL/health" --max-time 10 || echo "000")
+              echo "Health endpoint status: $HEALTH_STATUS"
+              
+              if [ "$HEALTH_STATUS" = "200" ]; then
+                echo "✅ Health check passed"
+                PASSED=true
+                break
+              else
+                echo "⚠️ Health check returned: $HEALTH_STATUS"
+              fi
+            else
+              echo "⚠️ App not ready yet (status: $HTTP_STATUS)"
+            fi
+            
+            if [ $i -lt $MAX_RETRIES ]; then
+              echo "Retrying in $RETRY_DELAY seconds..."
+              sleep $RETRY_DELAY
+            fi
+          done
+          
+          if [ "$PASSED" = "true" ]; then
+            echo "passed=true" >> $GITHUB_OUTPUT
+            echo "### ✅ Smoke Tests Passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "passed=false" >> $GITHUB_OUTPUT
+            echo "### ❌ Smoke Tests Failed!" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+        continue-on-error: true
+
+      - name: Rollback on failure
+        if: steps.smoke_test.outputs.passed != 'true'
+        run: |
+          echo "### ⚠️ Rolling back staging deployment..." >> $GITHUB_STEP_SUMMARY
+          
+          PREVIOUS_IMAGE="${{ steps.current_prod.outputs.image }}"
+          
+          if [ -n "$PREVIOUS_IMAGE" ]; then
+            echo "Rolling back to previous image: $PREVIOUS_IMAGE"
+            az webapp config container set \
+              --name ${{ env.WEBAPP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --slot ${{ env.SLOT_NAME }} \
+              --container-image-name "$PREVIOUS_IMAGE" \
+              --container-registry-url https://${{ env.ACR_NAME }}.azurecr.io
+            
+            echo "**Rollback completed.** Production remains intact." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No previous image found for rollback. Staging slot left in current state." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Fail the job to prevent swap
+          exit 1
+
+      - name: Notify on staging deployment success
+        if: steps.smoke_test.outputs.passed == 'true'
+        run: |
+          echo "### 🚀 Staging Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Staging URL:** https://${{ env.WEBAPP_NAME }}-${{ env.SLOT_NAME }}.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "**Image Tag:** ${{ needs.build.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # SWAP TO PRODUCTION JOB
+  # ============================================
+  swap-to-production:
+    name: Swap to Production
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    if: |
+      github.ref == 'refs/heads/main' && 
+      github.event_name != 'pull_request' && 
+      needs.deploy.outputs.smoke_test_passed == 'true' &&
+      github.event.inputs.skip_swap != 'true'
+    permissions:
+      contents: read
+    environment:
+      name: production
+      url: https://${{ env.WEBAPP_NAME }}.azurewebsites.net
+
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Swap staging to production
+        run: |
+          echo "Swapping staging slot to production..."
+          az webapp deployment slot swap \
+            --name ${{ env.WEBAPP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --slot ${{ env.SLOT_NAME }} \
+            --target-slot production
+
+      - name: Verify production deployment
+        run: |
+          PROD_URL="https://${{ env.WEBAPP_NAME }}.azurewebsites.net"
+          echo "Verifying production deployment at: $PROD_URL"
+          
+          sleep 30
+          
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_URL" --max-time 30 || echo "000")
+          
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "### ✅ Production Deployment Verified!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Production URL:** $PROD_URL" >> $GITHUB_STEP_SUMMARY
+            echo "**Image Tag:** ${{ needs.build.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Deployment Time:** $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⚠️ Production verification returned status: $HTTP_STATUS" >> $GITHUB_STEP_SUMMARY
+            echo "Please check the production environment manually." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Notify deployment complete
+        if: success()
+        run: |
+          echo "🎉 Deployment to production completed successfully!"
+          # Optional: Add Slack/Teams notification here
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"🎉 boabolatv deployed to production!"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ============================================
+  # NOTIFY JOB (Optional)
+  # ============================================
+  notify:
+    name: Send Notifications
+    needs: [build, deploy, swap-to-production]
+    runs-on: ubuntu-latest
+    if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [ "${{ needs.swap-to-production.result }}" = "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=✅ Deployment to production completed successfully!" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.deploy.result }}" = "failure" ]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=❌ Deployment to staging failed. Production is intact." >> $GITHUB_OUTPUT
+          elif [ "${{ needs.build.result }}" = "failure" ]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=❌ Build failed. No deployment was attempted." >> $GITHUB_OUTPUT
+          else
+            echo "status=info" >> $GITHUB_OUTPUT
+            echo "message=ℹ️ Deployment workflow completed with status: build=${{ needs.build.result }}, deploy=${{ needs.deploy.result }}, swap=${{ needs.swap-to-production.result }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Summary
+        run: |
+          echo "### Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy to Staging | ${{ needs.deploy.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Swap to Production | ${{ needs.swap-to-production.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.status.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+
+      # Optional: Slack notification
+      # - name: Send Slack notification
+      #   if: vars.SLACK_WEBHOOK_URL != ''
+      #   run: |
+      #     curl -X POST -H 'Content-type: application/json' \
+      #       --data '{"text":"${{ steps.status.outputs.message }}"}' \
+      #       ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # Optional: Microsoft Teams notification
+      # - name: Send Teams notification
+      #   if: vars.TEAMS_WEBHOOK_URL != ''
+      #   run: |
+      #     curl -X POST -H 'Content-type: application/json' \
+      #       --data '{"@type":"MessageCard","text":"${{ steps.status.outputs.message }}"}' \
+      #       ${{ secrets.TEAMS_WEBHOOK_URL }}
