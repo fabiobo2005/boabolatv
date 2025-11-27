@@ -11,8 +11,9 @@ import {
   Alert,
   CircularProgress,
   Container,
+  Snackbar,
 } from '@mui/material';
-import { useAuthStore } from '../../store';
+import { useAuth } from '../../shared/hooks';
 
 interface LocationState {
   from?: {
@@ -24,7 +25,7 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, isLoading, error, successMessage, clearError, clearSuccessMessage } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,8 +38,15 @@ export default function LoginPage() {
     
     const success = await login({ email, password });
     if (success) {
-      navigate(from, { replace: true });
+      // Short delay to show success message before navigating
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 500);
     }
+  };
+
+  const handleCloseSuccessSnackbar = () => {
+    clearSuccessMessage();
   };
 
   return (
@@ -116,6 +124,23 @@ export default function LoginPage() {
           </CardContent>
         </Card>
       </Box>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={3000}
+        onClose={handleCloseSuccessSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSuccessSnackbar}
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
