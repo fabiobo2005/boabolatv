@@ -142,7 +142,7 @@ export default function VideoLibraryPage() {
             onClick={() => setSelectedVideo(null)} 
             sx={{ mt: 1 }}
           >
-            Fechar Player
+            {t('videos.closePlayer')}
           </Button>
         </Box>
       )}
