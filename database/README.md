@@ -165,8 +165,9 @@ O schema define duas roles de banco de dados:
 ### Configuração de Conexão (Azure)
 
 ```bash
-export PGHOST=boabolatv-db.postgres.database.azure.com
-export PGUSER=admin@MngEnvMCAP198698.onmicrosoft.com
+# Substitua os valores abaixo pelas credenciais do seu ambiente Azure
+export PGHOST=<your-server>.postgres.database.azure.com
+export PGUSER=<admin-user>@<your-tenant>.onmicrosoft.com
 export PGPORT=5432
 export PGDATABASE=postgres
 export PGPASSWORD="$(az account get-access-token --resource https://ossrdbms-aad.database.windows.net --query accessToken --output tsv)"
