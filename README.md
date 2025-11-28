@@ -129,6 +129,27 @@ Adicione novos arquivos em \`src/i18n/locales/\` seguindo o padrão do \`pt-BR.j
 ### Novos Esportes
 Tipos e estruturas em \`src/types/stats.ts\` suportam expansão para outros esportes de raquete
 
+## 🚀 CI/CD
+
+O projeto inclui um workflow GitHub Actions para CI/CD que:
+
+1. **Build**: Em cada push ou PR para a branch `main`:
+   - Instala dependências
+   - Executa linting
+   - Executa testes
+   - Gera build de produção
+
+2. **Deploy**: Após o merge na branch `main`, faz deploy automático para Azure Web App
+
+### Configuração do Deploy
+
+Para configurar o deploy para Azure Web App:
+
+1. Crie uma Azure Web App no [Portal Azure](https://portal.azure.com)
+2. Baixe o Publish Profile da Web App
+3. Adicione o secret `AZURE_WEBAPP_PUBLISH_PROFILE` nas configurações do repositório GitHub
+4. Atualize o nome da Web App no arquivo `.github/workflows/azure-webapp.yml`
+
 ## 📄 Licença
 
 Este projeto está sob a licença MIT.
