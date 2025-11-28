@@ -1,13 +1,14 @@
 # GitHub Actions workflow to build Docker image and deploy to Azure Web App for Containers
 #
 # Prerequisites:
-# 1. Create an Azure Container Registry (ACR) or use Docker Hub
+# 1. Enable GitHub Container Registry for the repository (ghcr.io)
 # 2. Create an Azure Web App for Containers
-# 3. Set the following secrets in GitHub repository settings:
-#    - REGISTRY_USERNAME: Container registry username
-#    - REGISTRY_PASSWORD: Container registry password
+# 3. Set the following secret in GitHub repository settings:
 #    - AZURE_WEBAPP_PUBLISH_PROFILE: Azure Web App publish profile
-# 4. Update environment variables below with your registry and app names
+#      (Download from Azure Portal > Web App > Deployment Center > Manage publish profile)
+# 4. Update AZURE_WEBAPP_NAME environment variable below with your Azure Web App name
+#
+# Note: GITHUB_TOKEN is automatically provided by GitHub Actions for container registry authentication
 
 name: Build and Deploy Docker Image
 
