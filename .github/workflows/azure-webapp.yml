@@ -23,6 +23,10 @@ env:
   AZURE_WEBAPP_NAME: boabolatv  # Set this to your Azure Web App name
   NODE_VERSION: '20.x'
 
+# Limit permissions of the GITHUB_TOKEN for security
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
