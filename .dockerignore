@@ -1,0 +1,36 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build output (we build in Docker)
+dist
+
+# Development files
+.git
+.github
+.gitignore
+.prettierrc
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Coverage
+coverage
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Docker files (don't need to copy themselves)
+Dockerfile
+docker-compose.yml
+.dockerignore
