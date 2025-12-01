@@ -24,8 +24,6 @@ import {
 import {
   Menu as MenuIcon,
   VideoLibrary as VideoLibraryIcon,
-  BarChart as BarChartIcon,
-  Star as StarIcon,
   AdminPanelSettings as AdminIcon,
   Brightness4 as DarkIcon,
   Brightness7 as LightIcon,
@@ -46,18 +44,6 @@ interface NavItem {
 const navItems: NavItem[] = [
   { path: '/', labelKey: 'navigation.home', icon: <HomeIcon /> },
   { path: '/videos', labelKey: 'navigation.videos', icon: <VideoLibraryIcon /> },
-  { 
-    path: '/stats', 
-    labelKey: 'navigation.stats', 
-    icon: <BarChartIcon />,
-    requiredRoles: ['PRESENTER', 'ADMIN'],
-  },
-  { 
-    path: '/subscriber', 
-    labelKey: 'navigation.subscribers', 
-    icon: <StarIcon />,
-    requiredRoles: ['SUBSCRIBER', 'ADMIN'],
-  },
   { 
     path: '/admin', 
     labelKey: 'navigation.admin', 
