@@ -26,7 +26,6 @@
   "navigation": {
     "home": "Início",
     "videos": "Vídeos",
-    "live": "Ao Vivo",
     "stats": "Estatísticas",
     "subscribers": "Área de Assinantes",
     "admin": "Administração"
@@ -48,12 +47,6 @@
     "noResults": "Nenhum vídeo encontrado",
     "watchNow": "Assistir agora",
     "views": "visualizações"
-  },
-  "live": {
-    "title": "Transmissão ao Vivo",
-    "noLive": "Nenhuma transmissão ao vivo no momento",
-    "upcoming": "Próximas transmissões",
-    "watchLive": "Assistir ao vivo"
   },
   "stats": {
     "title": "Estatísticas de Partidas",

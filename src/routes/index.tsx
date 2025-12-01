@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout';
 import { LoginPage } from '../features/auth';
-import { VideoLibraryPage, LivePage } from '../features/video-library';
+import { VideoLibraryPage } from '../features/video-library';
 import { StatsPage } from '../features/stats';
 import { SubscribersPage } from '../features/subscribers';
 import { AdminPage } from '../features/admin';
@@ -23,10 +23,6 @@ export const router = createBrowserRouter([
       {
         path: 'videos',
         element: <VideoLibraryPage />,
-      },
-      {
-        path: 'live',
-        element: <LivePage />,
       },
       {
         path: 'stats',
