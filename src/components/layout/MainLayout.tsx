@@ -27,7 +27,6 @@ import {
   AdminPanelSettings as AdminIcon,
   Brightness4 as DarkIcon,
   Brightness7 as LightIcon,
-  Home as HomeIcon,
 } from '@mui/icons-material';
 import { useAuthStore, useThemeStore } from '../../store';
 import type { UserRole } from '../../types';
@@ -42,7 +41,6 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { path: '/', labelKey: 'navigation.home', icon: <HomeIcon /> },
   { path: '/videos', labelKey: 'navigation.videos', icon: <VideoLibraryIcon /> },
   { 
     path: '/admin', 
