@@ -9,10 +9,6 @@ import {
   CardActions,
   Typography,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Chip,
   Button,
   Pagination,
@@ -20,15 +16,13 @@ import {
   Stack,
 } from '@mui/material';
 import { Search as SearchIcon, PlayArrow as PlayIcon } from '@mui/icons-material';
-import { mockVideos, mockCategories } from '../../services/mock';
-import type { VideoCategory } from '../../types';
+import { mockVideos } from '../../services/mock';
 
 const ITEMS_PER_PAGE = 6;
 
 export default function VideoLibraryPage() {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<VideoCategory | 'all'>('all');
   const [page, setPage] = useState(1);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
@@ -38,11 +32,9 @@ export default function VideoLibraryPage() {
         video.description.toLowerCase().includes(search.toLowerCase()) ||
         video.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()));
       
-      const matchesCategory = category === 'all' || video.category === category;
-      
-      return matchesSearch && matchesCategory;
+      return matchesSearch;
     });
-  }, [search, category]);
+  }, [search]);
 
   const paginatedVideos = useMemo(() => {
     const start = (page - 1) * ITEMS_PER_PAGE;
@@ -91,23 +83,6 @@ export default function VideoLibraryPage() {
             },
           }}
         />
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>{t('common.filter')}</InputLabel>
-          <Select
-            value={category}
-            label={t('common.filter')}
-            onChange={(e) => {
-              setCategory(e.target.value as VideoCategory | 'all');
-              setPage(1);
-            }}
-          >
-            {mockCategories.map(cat => (
-              <MenuItem key={cat.value} value={cat.value}>
-                {t(`videos.categories.${cat.value}`)}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
       </Stack>
 
       {/* Selected Video Player */}
