@@ -119,16 +119,27 @@ END$$;
 -- ============================================================================
 -- GRANT PERMISSIONS
 -- ============================================================================
--- Grant permissions to readwrite role for new tables
-GRANT SELECT, INSERT, UPDATE, DELETE ON usuarios TO boabolatv_readwrite;
-GRANT SELECT, INSERT, UPDATE, DELETE ON videos TO boabolatv_readwrite;
-GRANT SELECT, INSERT, UPDATE, DELETE ON server_parameters TO boabolatv_readwrite;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO boabolatv_readwrite;
+-- Grant permissions to readwrite role for new tables (if role exists)
+-- These roles are created in 001_initial_schema.sql
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'boabolatv_readwrite') THEN
+        GRANT SELECT, INSERT, UPDATE, DELETE ON usuarios TO boabolatv_readwrite;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON videos TO boabolatv_readwrite;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON server_parameters TO boabolatv_readwrite;
+        GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO boabolatv_readwrite;
+    END IF;
+END$$;
 
--- Grant permissions to readonly role for new tables
-GRANT SELECT ON usuarios TO boabolatv_readonly;
-GRANT SELECT ON videos TO boabolatv_readonly;
-GRANT SELECT ON server_parameters TO boabolatv_readonly;
+-- Grant permissions to readonly role for new tables (if role exists)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'boabolatv_readonly') THEN
+        GRANT SELECT ON usuarios TO boabolatv_readonly;
+        GRANT SELECT ON videos TO boabolatv_readonly;
+        GRANT SELECT ON server_parameters TO boabolatv_readonly;
+    END IF;
+END$$;
 
 -- ============================================================================
 -- END OF MIGRATION

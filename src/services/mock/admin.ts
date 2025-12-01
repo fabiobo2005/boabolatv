@@ -103,7 +103,9 @@ export const usuariosApi = {
       id: nextUsuarioId++,
       login: data.login,
       email: data.email,
-      // Note: In a real implementation, the password would be hashed server-side
+      // TODO: In production, password must be hashed server-side using bcrypt or Argon2
+      // before storing in the database. Never store plain text passwords.
+      // Example: senha_hash = await bcrypt.hash(data.senha, 12)
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
