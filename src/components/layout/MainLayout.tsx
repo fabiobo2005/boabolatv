@@ -24,7 +24,6 @@ import {
 import {
   Menu as MenuIcon,
   VideoLibrary as VideoLibraryIcon,
-  LiveTv as LiveTvIcon,
   BarChart as BarChartIcon,
   Star as StarIcon,
   AdminPanelSettings as AdminIcon,
@@ -47,7 +46,6 @@ interface NavItem {
 const navItems: NavItem[] = [
   { path: '/', labelKey: 'navigation.home', icon: <HomeIcon /> },
   { path: '/videos', labelKey: 'navigation.videos', icon: <VideoLibraryIcon /> },
-  { path: '/live', labelKey: 'navigation.live', icon: <LiveTvIcon /> },
   { 
     path: '/stats', 
     labelKey: 'navigation.stats', 
