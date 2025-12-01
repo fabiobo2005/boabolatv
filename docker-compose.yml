@@ -6,29 +6,3 @@ services:
     ports:
       - "8080:80"
     restart: unless-stopped
-    depends_on:
-      - database
-    environment:
-      - DATABASE_URL=postgresql://boabolatv_user:boabolatv_pass@database:5432/boabolatv-database
-
-  database:
-    image: postgres:16-alpine
-    container_name: boabolatv-server
-    restart: unless-stopped
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: boabolatv-database
-      POSTGRES_USER: boabolatv_user
-      POSTGRES_PASSWORD: boabolatv_pass
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./database/migrations:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U boabolatv_user -d boabolatv-database"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  postgres_data:

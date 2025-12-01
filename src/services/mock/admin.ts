@@ -56,7 +56,7 @@ let mockAdminVideos: AdminVideo[] = [
 
 // Mock server parameters
 let mockServerParameters: ServerParameters = {
-  db_host: 'boabolatv-server',
+  db_host: 'boabolatv-server.postgres.database.azure.com',
   db_port: '5432',
   db_name: 'boabolatv-database',
   db_user: '',
