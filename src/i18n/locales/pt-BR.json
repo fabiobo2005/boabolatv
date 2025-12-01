@@ -11,7 +11,11 @@
     "search": "Buscar",
     "filter": "Filtrar",
     "all": "Todos",
-    "none": "Nenhum"
+    "none": "Nenhum",
+    "add": "Adicionar",
+    "actions": "Ações",
+    "confirm": "Confirmar",
+    "close": "Fechar"
   },
   "auth": {
     "login": "Entrar",
@@ -50,6 +54,78 @@
     "title": "Administração",
     "users": "Usuários",
     "videos": "Vídeos",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "serverParameters": "Parâmetros do Servidor",
+    "stats": {
+      "totalUsers": "Total de Usuários",
+      "subscribers": "Assinantes",
+      "presenters": "Apresentadores",
+      "admins": "Administradores"
+    },
+    "userForm": {
+      "addUser": "Adicionar Usuário",
+      "editUser": "Editar Usuário",
+      "newUser": "Novo Usuário",
+      "login": "Login",
+      "email": "E-mail",
+      "password": "Senha",
+      "confirmPassword": "Confirmar Senha",
+      "profile": "Perfil",
+      "loginPlaceholder": "Digite o login",
+      "emailPlaceholder": "Digite o e-mail",
+      "passwordPlaceholder": "Digite a senha"
+    },
+    "videoForm": {
+      "addVideo": "Adicionar Vídeo",
+      "editVideo": "Editar Vídeo",
+      "newVideo": "Novo Vídeo",
+      "title": "Título",
+      "description": "Descrição",
+      "youtubeUrl": "URL do YouTube",
+      "uploadFile": "Upload de Arquivo",
+      "selectFile": "Selecionar Arquivo",
+      "noFileSelected": "Nenhum arquivo selecionado",
+      "titlePlaceholder": "Digite o título do vídeo",
+      "descriptionPlaceholder": "Digite a descrição do vídeo",
+      "youtubeUrlPlaceholder": "https://www.youtube.com/watch?v=..."
+    },
+    "serverParams": {
+      "title": "Parâmetros do Servidor",
+      "database": "Banco de Dados",
+      "storage": "Armazenamento",
+      "dbHost": "Host do Banco de Dados",
+      "dbPort": "Porta do Banco de Dados",
+      "dbName": "Nome do Banco de Dados",
+      "dbUser": "Usuário do Banco de Dados",
+      "dbPassword": "Senha do Banco de Dados",
+      "storageAccountName": "Nome da Storage Account",
+      "storageAccountKey": "Chave da Storage Account",
+      "saveParameters": "Salvar Parâmetros",
+      "testConnection": "Testar Conexão"
+    },
+    "messages": {
+      "userCreated": "Usuário criado com sucesso!",
+      "userUpdated": "Usuário atualizado com sucesso!",
+      "userDeleted": "Usuário excluído com sucesso!",
+      "videoCreated": "Vídeo adicionado com sucesso!",
+      "videoUpdated": "Vídeo atualizado com sucesso!",
+      "videoDeleted": "Vídeo excluído com sucesso!",
+      "parametersSaved": "Parâmetros salvos com sucesso!",
+      "connectionSuccess": "Conexão estabelecida com sucesso!",
+      "connectionError": "Falha ao conectar. Verifique os parâmetros.",
+      "loginExists": "Este login já está em uso",
+      "emailExists": "Este e-mail já está em uso"
+    },
+    "table": {
+      "name": "Nome",
+      "login": "Login",
+      "email": "E-mail",
+      "profile": "Perfil",
+      "actions": "Ações",
+      "title": "Título",
+      "description": "Descrição",
+      "source": "Fonte",
+      "uploadDate": "Data de Upload"
+    }
   }
 }
