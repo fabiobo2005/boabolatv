@@ -9,7 +9,7 @@ export const mockVideos: Video[] = [
     description: 'Transmissão ao vivo das finais do torneio COSAT ITF Tennis Tour Juniors J60 - Copa Juninho Tennis.',
     thumbnail: 'https://img.youtube.com/vi/meUkV1J7ckM/maxresdefault.jpg',
     duration: '5:00:00',
-    publishedAt: '2025-08-30',
+    publishedAt: '2024-08-30',
     category: 'match-highlights',
     tags: ['COSAT', 'ITF', 'Copa Juninho Tennis', 'Juvenil'],
     isLive: false,
