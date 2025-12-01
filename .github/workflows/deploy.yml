@@ -96,7 +96,7 @@ jobs:
 
       - name: Set image reference output
         id: image-ref
-        run: echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+        run: echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
 
   deploy:
     runs-on: ubuntu-latest
