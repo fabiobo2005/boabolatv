@@ -263,18 +263,56 @@ export const serverParametersApi = {
     return { ...mockServerParameters };
   },
 
+  /**
+   * Saves server parameters by first connecting to the database using
+   * the provided connection parameters, then persisting the parameters.
+   * This ensures the parameters are stored in the database itself.
+   */
   async save(params: ServerParameters): Promise<ServerParameters> {
     await delay(400);
 
+    // Validate required database connection fields
+    if (!params.db_host || !params.db_port || !params.db_name) {
+      throw new Error(
+        'Parâmetros de conexão obrigatórios não preenchidos (host, porta, nome do banco)'
+      );
+    }
+
+    // Simulate connecting to the database using the provided parameters
+    // In production, this would establish a real connection using pg or similar
+    const connectionSuccessful = await validateConnection(params);
+
+    if (!connectionSuccessful) {
+      throw new Error(
+        'Falha ao conectar ao banco de dados. Verifique os parâmetros de conexão.'
+      );
+    }
+
+    // After successful connection, persist the parameters
     mockServerParameters = { ...params };
     return mockServerParameters;
   },
 
-  async testConnection(): Promise<{ success: boolean; message: string }> {
+  /**
+   * Tests the connection to the database using the provided parameters.
+   */
+  async testConnection(
+    params: ServerParameters
+  ): Promise<{ success: boolean; message: string }> {
     await delay(500);
 
-    // Simulate connection test
-    if (mockServerParameters.db_host && mockServerParameters.db_name) {
+    // Validate required fields for connection test
+    if (!params.db_host || !params.db_name) {
+      return {
+        success: false,
+        message: 'Host e nome do banco de dados são obrigatórios.',
+      };
+    }
+
+    // Simulate connection test with the provided parameters
+    const connectionSuccessful = await validateConnection(params);
+
+    if (connectionSuccessful) {
       return {
         success: true,
         message: 'Conexão com o banco de dados estabelecida com sucesso!',
@@ -287,3 +325,20 @@ export const serverParametersApi = {
     };
   },
 };
+
+/**
+ * Validates database connection parameters (mock implementation).
+ * In production, this would attempt an actual database connection.
+ */
+async function validateConnection(params: ServerParameters): Promise<boolean> {
+  await delay(100);
+
+  // Basic validation - check that required fields are present
+  if (!params.db_host || !params.db_port || !params.db_name) {
+    return false;
+  }
+
+  // Simulate that connection is successful if all required fields are provided
+  // In production, this would use a database client like 'pg' to actually connect
+  return true;
+}

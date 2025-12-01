@@ -68,7 +68,7 @@ export default function ServerParametersTab() {
     setTesting(true);
 
     try {
-      const result = await serverParametersApi.testConnection();
+      const result = await serverParametersApi.testConnection(params);
       if (result.success) {
         setSuccess(result.message);
       } else {
